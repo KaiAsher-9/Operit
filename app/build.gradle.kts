@@ -65,7 +65,6 @@ android {
         
         ndk {
             // Explicitly specify the ABIs we package for the app process.
-            // terminal now also ships x86_64 runtime binaries for the Android Studio emulator,
             // while the rest of the app remains primarily ARM-focused.
             abiFilters.addAll(listOf("arm64-v8a"))
         }
@@ -196,7 +195,6 @@ kotlin {
 dependencies {
     implementation("com.github.jelmerk:hnswlib-core:1.2.1")
     implementation(project(":dragonbones"))
-    implementation(project(":terminal"))
     implementation(project(":mnn"))
     implementation(project(":llama"))
     implementation(project(":mmd"))
