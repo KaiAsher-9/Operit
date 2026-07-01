@@ -275,7 +275,10 @@ class RepoMarketPublishViewModel(
                 formatVer = "${type.wireValue}_v2",
                 minAppVer = CURRENT_APP_VERSION
             ),
-            source = MarketV2PublishSource(url = repoTarget.sourceUrl),
+            source = MarketV2PublishSource(
+                kind = "github_repo",
+                url = repoTarget.sourceUrl
+            ),
             repoVersion = MarketV2PublishRepoVersion(
                 refType = repoTarget.refType,
                 refName = repoTarget.refName,

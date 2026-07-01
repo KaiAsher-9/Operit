@@ -223,6 +223,15 @@ data class MarketV2PublisherEntriesResponse(
 )
 
 @Serializable
+data class MarketV2PublisherShardResponse(
+    val ok: Boolean = false,
+    val marketVersion: Int = 2,
+    val generatedAt: String? = null,
+    val shard: String = "",
+    val authors: Map<String, MarketV2PublisherEntriesResponse> = emptyMap()
+)
+
+@Serializable
 data class MarketV2PublisherEntrySummary(
     val id: String = "",
     val title: String = "",
@@ -230,7 +239,8 @@ data class MarketV2PublisherEntrySummary(
     val relation: String,
     val stateCode: String = "pending",
     val categoryId: String = "",
-    val updatedAt: String = ""
+    val updatedAt: String = "",
+    val reasonCodes: List<String> = emptyList()
 )
 
 @Serializable
@@ -373,7 +383,7 @@ data class MarketV2Version(
 data class MarketV2Reaction(
     val reaction: String = "",
     val content: String = "",
-    val count: Int = 0
+    val total: Int = 0
 )
 
 @Serializable
@@ -442,20 +452,20 @@ data class MarketV2PublishVersion(
 
 @Serializable
 data class MarketV2PublishSource(
-    val kind: String = "github_repo",
+    val kind: String,
     val url: String
 )
 
 @Serializable
 data class MarketV2PublishRepoVersion(
-    val refType: String = "branch",
-    val refName: String = "main",
+    val refType: String,
+    val refName: String,
     val installConfig: String = "{}"
 )
 
 @Serializable
 data class MarketV2PublishAsset(
-    val kind: String = "github_release_asset",
+    val kind: String,
     val url: String,
     val ghOwner: String = "",
     val ghRepo: String = "",
@@ -806,7 +816,7 @@ class MarketStatsApiService {
                     pathSegments = listOf("market", "v2", "entries", entryId, "reactions"),
                     label = "addReaction entryId=$entryId"
                 ) { _, _ ->
-                    MarketV2Reaction(reaction = "+1", content = "+1", count = 1)
+                    MarketV2Reaction(reaction = "+1", content = "+1", total = 1)
                 }
             }
         }
@@ -826,6 +836,20 @@ class MarketStatsApiService {
                     }
                 response.entries.entries
                     .sortedByDescending { it.updatedAt }
+            }
+        }
+
+    suspend fun getPublisherEntries(authorId: String): Result<List<MarketV2PublisherEntrySummary>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val resolvedAuthorId = authorId.trim().ifBlank { error("Missing author id") }
+                val shard = resolvedAuthorId.marketShard()
+                requestStaticJson(
+                    pathSegments = listOf("market", "v2", "private", "publishers", "$shard.json"),
+                    label = "getPublisherEntries authorId=$resolvedAuthorId shard=$shard"
+                ) { body ->
+                    json.decodeFromString(MarketV2PublisherShardResponse.serializer(), body)
+                }.authors.getValue(resolvedAuthorId).entries.sortedByDescending { it.updatedAt }
             }
         }
 
@@ -1296,7 +1320,7 @@ class MarketStatsApiService {
     private fun MarketV2Entry.likesCount(): Int {
         return stats?.likes ?: reactions.sumOf { reaction ->
             val key = reaction.reaction.ifBlank { reaction.content }
-            if (key == "+1" || key.equals("like", ignoreCase = true)) reaction.count.coerceAtLeast(1) else 0
+            if (key == "+1" || key.equals("like", ignoreCase = true)) reaction.total.coerceAtLeast(1) else 0
         }
     }
 
