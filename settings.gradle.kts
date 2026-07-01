@@ -14,7 +14,8 @@ dependencyResolutionManagement {
         maven { url = uri("https://dl.bintray.com/rikkaw/Shizuku") }
         maven { url = uri("https://api.xposed.info/") }
         maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
-        maven { url = uri("https://packages.arthenica.com/maven") }
+        maven { url = uri("https://maven-central.storage.googleapis.com/maven2") }
+        maven { url = uri("https://maven.aliyun.com/repository/central") }
     }
 }
 
