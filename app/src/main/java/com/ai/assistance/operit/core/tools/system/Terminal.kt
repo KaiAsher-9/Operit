@@ -8,27 +8,21 @@ import com.ai.assistance.operit.terminal.CommandExecutionEvent
 import com.ai.assistance.operit.terminal.SessionDirectoryEvent
 import com.ai.assistance.operit.terminal.TerminalManager
 import com.ai.assistance.operit.terminal.data.TerminalState
+import com.ai.assistance.operit.terminal.data.TerminalSessionData
 import com.ai.assistance.operit.terminal.provider.type.HiddenExecResult
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.transformWhile
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.UUID
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
- * 终端管理器 - 已禁用proot启动
- * 保留类签名和方法签名以确保编译通过，但所有方法体均为空操作
+ * Terminal wrapper - proot process startup DISABLED
+ * All method signatures preserved for compilation compatibility.
+ * All method bodies are no-ops to prevent proot from being launched at runtime.
  */
 @RequiresApi(Build.VERSION_CODES.O)
 class Terminal private constructor(private val context: Context) {
@@ -46,91 +40,68 @@ class Terminal private constructor(private val context: Context) {
         private const val TAG = "Terminal"
     }
 
-    // 不再初始化 TerminalManager，避免拉起 proot 进程
-    // private val terminalManager = TerminalManager.getInstance(context)
+    // TerminalManager is NOT initialized - this prevents proot binary from ever being invoked
     private val scope = CoroutineScope(Dispatchers.Main)
 
-    // 使用空的 Flow/StateFlow 替代真实的 terminalManager 暴露
+    // Empty stubs matching original property types
     val commandEvents: SharedFlow<CommandExecutionEvent> = MutableSharedFlow()
     val directoryEvents: SharedFlow<SessionDirectoryEvent> = MutableSharedFlow()
     val terminalState: StateFlow<TerminalState> = MutableStateFlow(TerminalState())
-    val sessions = MutableStateFlow(emptyList<com.ai.assistance.operit.terminal.data.TerminalSession>())
-    val currentSessionId = MutableStateFlow<String?>(null)
-    val currentDirectory = MutableStateFlow("/")
-    val isInteractiveMode = MutableStateFlow(false)
-    val interactivePrompt = MutableStateFlow("")
-    val isFullscreen = MutableStateFlow(false)
+    val sessions: Flow<List<TerminalSessionData>> = MutableStateFlow(emptyList())
+    val currentSessionId: Flow<String?> = MutableStateFlow(null)
+    val currentDirectory: Flow<String> = MutableStateFlow("/")
+    val isInteractiveMode: Flow<Boolean> = MutableStateFlow(false)
+    val interactivePrompt: Flow<String> = MutableStateFlow("")
+    val isFullscreen: Flow<Boolean> = MutableStateFlow(false)
 
-    /**
-     * 初始化终端管理器 - 已禁用，直接返回false
-     */
+    /** Initialize - DISABLED, returns false immediately */
     suspend fun initialize(): Boolean {
         AppLogger.d(TAG, "Terminal initialization skipped - proot disabled")
         return false
     }
 
-    /**
-     * 销毁终端管理器 - 空操作
-     */
-    fun destroy() {
-        AppLogger.d(TAG, "Terminal destroy called - no-op (proot disabled)")
-    }
+    /** Destroy - no-op */
+    fun destroy() { }
 
-    /**
-     * 创建新的终端会话 - 已禁用，返回空session ID
-     */
+    /** Create session - DISABLED, returns empty string */
     suspend fun createSession(title: String? = null): String {
-        AppLogger.d(TAG, "Terminal createSession skipped - proot disabled")
+        AppLogger.d(TAG, "createSession skipped - proot disabled")
         return ""
     }
-    
-    /**
-     * 切换到指定会话 - 空操作
-     */
+
     fun switchToSession(sessionId: String) { }
 
-    /**
-     * 关闭终端会话 - 空操作
-     */
     fun closeSession(sessionId: String) { }
 
-    /**
-     * 执行命令 - 已禁用，直接返回null
-     */
+    /** Execute command - DISABLED, returns null */
     suspend fun executeCommand(sessionId: String, command: String): String? {
-        AppLogger.d(TAG, "Terminal executeCommand skipped - proot disabled")
         return null
     }
 
+    /** Execute hidden command - DISABLED, returns error result */
     suspend fun executeHiddenCommand(
         command: String,
         executorKey: String = "default",
         timeoutMs: Long = 120000L
     ): HiddenExecResult {
-        AppLogger.d(TAG, "Terminal executeHiddenCommand skipped - proot disabled")
-        return HiddenExecResult(exitCode = -1, stdout = "", stderr = "proot disabled")
+        return HiddenExecResult(
+            output = "",
+            exitCode = -1,
+            state = HiddenExecResult.State.OK,
+            error = "proot disabled"
+        )
     }
 
-    /**
-     * 执行命令 - Flow版本，返回空Flow
-     */
+    /** Execute command flow - DISABLED, returns empty flow */
     fun executeCommandFlow(sessionId: String, command: String): Flow<CommandExecutionEvent> {
         return emptyFlow()
     }
-    
-    /**
-     * 发送输入 - 空操作
-     */
+
     fun sendInput(sessionId: String, input: String) { }
 
-    /**
-     * 发送中断信号 - 空操作
-     */
     fun sendInterruptSignal(sessionId: String) { }
 
-    /**
-     * 检查服务是否已连接 - 始终返回true以防止业务逻辑阻塞
-     */
+    /** Always returns true to prevent business logic from blocking */
     fun isConnected(): Boolean {
         return true
     }
