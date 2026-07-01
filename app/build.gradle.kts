@@ -201,6 +201,10 @@ dependencies {
     implementation(project(":fbx"))
     implementation(project(":showerclient"))
     implementation(project(":quickjs"))
+    implementation(project(":terminal"))
+
+    // FFmpegKit - video/audio processing
+    implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
 
     // glTF runtime rendering (Filament)
     implementation("com.google.android.filament:filament-android:1.69.2")
